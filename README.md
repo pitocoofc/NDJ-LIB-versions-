@@ -1,3 +1,7 @@
+HUB: https://github.com/pitocoofc/NDJ-LIB-HUB.git
+
+
+
 This repository is responsible for cataloging the versions and enabling the HUB to function... Publishing an alternative HUB violates NDJ-LIB limits. 
 
 The download opens directly from the main HUB.
