@@ -1,0 +1,22 @@
+{
+  "name": "easy-djs-bot",
+  "version": "1.0.9",
+  "description": "Uma camada simplificada sobre o discord.js para iniciantes",
+  "main": "src/index.js",
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  },
+  "keywords": [
+    "discord",
+    "discord.js",
+    "wrapper",
+    "easy",
+    "bot"
+  ],
+  "author": "Pitoco",
+  "license": "MIT",
+  "files": [
+    "src",
+    "dnt"
+  ]
+}
