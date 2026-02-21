@@ -1,111 +1,100 @@
-const { Client, GatewayIntentBits, Events, REST, Routes } = require('discord.js');
-const Context = require('./Context');
+#!/usr/bin/env node
+/*
+ * Ndj-lib Installer Hub - "The Architect" Edition
+ * Copyright (C) 2026 pitocoofc | GPL v2
+ * * Este instalador garante a hierarquia completa de pastas e 
+ * resolve dependências automaticamente.
+ */
+
+const { execSync } = require('child_process');
+const readline = require('readline');
 const fs = require('fs');
-const path = require('path');
 
-class EasyBot {
-    constructor(options = {}) {
-        this.token = options.token;
-        this.client = new Client({
-            intents: options.intents || [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
-        });
-        this.commands = new Map();
-    }
+const repoVersions = "https://github.com/pitocoofc/NDJ-LIB-versions-.git";
 
-    // --- SISTEMA DE MÓDULOS DNT ---
+const versoes = {
+    "1": { nome: "1.0.9", folder: "1.0.9", desc: "Versão Estável (Estrutura Completa)" },
+    "2": { nome: "1.1.0-Canary", folder: "1.1.0-Canary", desc: "Experimental (Pode conter bugs)" }
+};
 
-    // Função para o bot carregar o módulo
-    useModule(moduleName) {
-        const modulePath = path.join(process.cwd(), 'modules', moduleName, 'index.js');
-        
-        try {
-            if (fs.existsSync(modulePath)) {
-                // Antes de carregar, rodamos o fiscal de versão
-                this.constructor.checkModule(path.dirname(modulePath));
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-                const module = require(modulePath);
-                module.init(this); 
-                console.log(`📦 [DNT] Módulo '${moduleName}' carregado com sucesso!`);
-            } else {
-                console.error(`❌ [DNT] Módulo '${moduleName}' não encontrado em ./modules/`);
-            }
-        } catch (err) {
-            console.error(`❌ [DNT] Erro ao carregar módulo '${moduleName}':`, err.message);
-        }
-    }
-
-    // O "Fiscal" que valida o manifest.dnt
-    static checkModule(modulePath) {
-        const manifestPath = path.join(modulePath, 'manifest.dnt');
-        
-        if (!fs.existsSync(manifestPath)) {
-            console.error("❌ [DNT] Erro: Módulo inválido (faltando manifest.dnt)");
-            return;
-        }
-
-        const content = fs.readFileSync(manifestPath, 'utf8');
-        const config = {};
-        
-        content.split('\n').forEach(line => {
-            if(line.includes('=')) {
-                const [key, value] = line.split('=');
-                config[key.trim()] = value.trim();
-            }
-        });
-
-        const currentLibVersion = "1.0.9"; 
-
-        if (config.compatible_dnt > currentLibVersion) {
-            console.error(`\n❌ [DNT ERROR]: O módulo '${config.name}' exige a versão ${config.compatible_dnt}.`);
-            console.error(`Sua versão da Ndj-lib é ${currentLibVersion}. Atualize a lib!`);
-            process.exit(1);
-        }
-    }
-
-    // --- SISTEMA DE COMANDOS ---
-
-    command({ name, description, run }) {
-        this.commands.set(name, { description, run });
-    }
-
-    async start() {
-        if (!this.token) throw new Error("ERRO: Você precisa fornecer um token!");
-
-        this.client.once(Events.ClientReady, async (c) => {
-            console.log(`✅ Bot online como ${c.user.tag}`);
-            
-            const rest = new REST({ version: '10' }).setToken(this.token);
-            const commandsJSON = Array.from(this.commands.entries()).map(([name, cmd]) => ({
-                name: name,
-                description: cmd.description
-            }));
-
-            try {
-                await rest.put(Routes.applicationCommands(c.user.id), { body: commandsJSON });
-                console.log('🚀 Slash Commands registrados com sucesso!');
-            } catch (error) {
-                console.error('❌ Erro ao registrar comandos:', error);
-            }
-        });
-
-        this.client.on(Events.InteractionCreate, async (interaction) => {
-            if (!interaction.isChatInputCommand()) return;
-
-            const cmd = this.commands.get(interaction.commandName);
-            if (cmd) {
-                const ctx = new Context(interaction);
-                try {
-                    await cmd.run(ctx);
-                } catch (err) {
-                    console.error(err);
-                    interaction.reply({ content: 'Houve um erro ao executar este comando!', ephemeral: true });
-                }
-            }
-        });
-
-        await this.client.login(this.token);
+// Limpa o ambiente de pastas temporárias se houver erro anterior
+function limpar() {
+    if (fs.existsSync('temp_ndj')) {
+        fs.rmSync('temp_ndj', { recursive: true, force: true });
     }
 }
 
-module.exports = EasyBot;
-                  
+async function instalar(v) {
+    limpar();
+    console.log(`\n\x1b[33m[1/3]\x1b[0m 🚚 Conectando à Warehouse para buscar \x1b[1mv${v.nome}\x1b[0m...`);
+
+    try {
+        // O "Pulo do Gato": Comandos Git para baixar apenas uma pasta específica
+        const comandoClone = `
+            mkdir temp_ndj && cd temp_ndj && \
+            git init -q && \
+            git remote add origin ${repoVersions} && \
+            git config core.sparseCheckout true && \
+            echo "${v.folder}/" >> .git/info/sparse-checkout && \
+            git pull -q origin main && \
+            cp -r ${v.folder}/* .. && \
+            cd ..
+        `.trim();
+
+        execSync(comandoClone, { stdio: 'inherit' });
+
+        console.log(`\x1b[33m[2/3]\x1b[0m 📂 Hierarquia de arquivos preservada (src/, index, etc).`);
+        
+        // 3. Resolve o erro MODULE_NOT_FOUND instalando o que estiver no package.json
+        console.log(`\x1b[33m[3/3]\x1b[0m 🛠️  Instalando dependências (npm install)...`);
+        
+        if (fs.existsSync('package.json')) {
+            execSync('npm install', { stdio: 'inherit' });
+        } else {
+            console.log("\x1b[31m[!] Aviso: package.json não encontrado. Instale os módulos manualmente.\x1b[0m");
+        }
+
+        limpar();
+        console.log("\x1b[32m%s\x1b[0m", "\n✅ INSTALAÇÃO CONCLUÍDA COM SUCESSO!");
+        console.log(`A v${v.nome} agora está pronta para rodar no seu ambiente.`);
+        console.log("Comando: \x1b[1mnode index.js\x1b[0m\n");
+        process.exit(0);
+
+    } catch (e) {
+        limpar();
+        console.log("\x1b[31m\n❌ FALHA NA INSTALAÇÃO:\x1b[0m");
+        console.log("Certifique-se de que o 'git' está instalado no seu Termux.");
+        console.log("Erro: " + e.message);
+        process.exit(1);
+    }
+}
+
+if (process.argv[2] !== 'portal') {
+    console.log("\x1b[31m%s\x1b[0m", "\n[!] Use: ./ndj portal");
+    process.exit(0);
+}
+
+console.clear();
+console.log("\x1b[35m%s\x1b[0m", `
+ ███▄    █ ▓█████▄  ▄▄▄       ██▓
+ ██ ▀█   █ ▒██▀ ██▌▒████▄    ▓██▒
+▓██  ▀█ ██▒░██   █▌▒██  ▀█▄  ▒██▒
+▓██▒  ▐▌██▒░▓█▄   ▌░██▄▄▄▄██ ░██░
+▒██░   ▓██░░▒████▓  ▓█   ▓██▒░██░
+`);
+console.log("\x1b[32m%s\x1b[0m", " --- NDJ-LIB | PORTAL DE VERSÕES --- \n");
+
+Object.keys(versoes).forEach(k => {
+    console.log(`\x1b[33m[${k}]\x1b[0m \x1b[1mv${versoes[k].nome}\x1b[0m - ${versoes[k].desc}`);
+});
+
+rl.question("\n\x1b[36mSelecione a versão para instalar:\x1b[0m ", (opt) => {
+    const v = versoes[opt];
+    if (!v) {
+        console.log("Saindo...");
+        process.exit(0);
+    }
+    instalar(v);
+});
