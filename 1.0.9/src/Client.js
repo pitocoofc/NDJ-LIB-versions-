@@ -127,4 +127,4 @@ class EasyBot {
     }
 }
 
-module.exports = EasyBot;
+module.exports = EasyBot; 
