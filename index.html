@@ -5,32 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ndj-lib Tracker</title>
     <style>
-        body { background: #0f0f0f; color: #00ff00; font-family: monospace; text-align: center; padding: 50px; }
-        .counter { font-size: 3rem; font-weight: bold; color: #ff00ff; margin: 20px 0; }
-        .card { border: 1px solid #333; padding: 20px; border-radius: 10px; display: inline-block; }
+        body { background: #0f0f0f; color: #00ff00; font-family: 'Courier New', monospace; text-align: center; padding: 50px; }
+        .card { border: 2px solid #00ff00; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 0 15px #00ff00; }
+        .counter-img { margin: 20px 0; transform: scale(1.5); }
+        h1 { color: #fff; text-transform: uppercase; letter-spacing: 2px; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>📊 NDJ-LIB STATUS</h1>
-        <p>Desenvolvedores que marcaram presença:</p>
-        <div id="visits" class="counter">Carregando...</div>
-        <p>Obrigado por fazer parte dos mais de 1.000 clones!</p>
+        <p>Total de desenvolvedores que passaram por aqui:</p>
+        
+        <div class="counter-img">
+            <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fpitocoofc%2FNdj-lib&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=BOTS+ATIVOS&edge_flat=false" alt="Contador de Visitas">
+        </div>
+
+        <p>Obrigado por fortalecer a v1.0.9!</p>
+        <p style="font-size: 0.8em; color: #888;">Caminho principal: src/index.js</p>
     </div>
-
-    <script>
-        // Esta API cria a chave 'ndj_lib_stats' automaticamente no primeiro acesso
-        const namespace = "ndj_lib_stats_ghost"; 
-        const key = "access_counter";
-
-        fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('visits').innerText = data.value;
-            })
-            .catch(() => {
-                document.getElementById('visits').innerText = "Erro ao carregar";
-            });
-    </script>
 </body>
 </html>
