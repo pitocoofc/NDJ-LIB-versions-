@@ -1,0 +1,21 @@
+#!/bin/bash
+# dnt - module manager 
+
+if [ "$1" == "install" ]; then
+    REPO=$2
+    FOLDER_NAME=$(echo $REPO | cut -d'/' -f2)
+    
+    echo "📥 searching for the module in GitHub: $REPO..."
+    mkdir -p modules
+    
+    # finalization 
+    rm -rf "./modules/$FOLDER_NAME"
+    
+    git clone "https://github.com/$REPO.git" "./modules/$FOLDER_NAME"
+    
+    # send it to the royal folder
+    node -e "require('./node_modules/easy-djs-bot/src/Client').checkModule('./modules/$FOLDER_NAME')"
+else
+    echo "correction: ./dnt install user/repository"
+fi
+      
