@@ -1,1 +1,2 @@
-Versão 1.0.9 para download ndj lite
+PT: Portuguese version
+EN: English version
